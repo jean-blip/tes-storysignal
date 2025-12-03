@@ -1,0 +1,31 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+
+// Protect these routes — requiring login
+const PROTECTED_PATHS = ["/"];
+
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // If path does NOT require protection → allow
+  if (!PROTECTED_PATHS.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Read the Supabase auth cookie (supabase uses this name)
+  const authToken = req.cookies.get("sb-access-token")?.value;
+
+  // If NO token → redirect to login
+  if (!authToken) {
+    const loginUrl = new URL("/login", req.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Otherwise → allow request
+  return NextResponse.next();
+}
+
+// Tell Next.js which paths to apply middleware to
+export const config = {
+  matcher: ["/"],
+};

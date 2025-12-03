@@ -1,6 +1,5 @@
 "use client";
 
-
 import { supabase } from "../lib/supabaseClient";
 
 import type { AnalysisResult } from "../lib/analyze";
@@ -10,7 +9,6 @@ import { analyzeText } from "../lib/analyze";
 
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
-
 
 // ----- Static lookups -----
 const MOODS = [
@@ -46,7 +44,6 @@ const CHAR_LIMIT = 2000;
 const DAILY_LIMIT = 5;
 
 
-
 export default function HomePage() {
 
 // --- NEW: Auth + router setup ---
@@ -71,7 +68,6 @@ export default function HomePage() {
   const [hydrated, setHydrated] = useState(false);
 
   const [entriesToday, setEntriesToday] = useState(0);
-
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -505,3 +501,4 @@ try {
     </main>
   );
 }
+
