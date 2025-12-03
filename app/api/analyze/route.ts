@@ -1,0 +1,153 @@
+// app/api/analyze/route.ts
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
+
+// Utility: keep distribution safe + normalized
+function normalizeDistribution(numbers: number[]): number[] {
+  const safe = numbers.map((n) => Math.max(0, n));
+  const total = safe.reduce((a, b) => a + b, 0);
+
+  if (total === 0) {
+    // default gentle spread that still gives a clear dominant archetype
+    return [16, 16, 16, 16, 16, 20];
+  }
+
+  return safe.map((n) => Math.round((n / total) * 100));
+}
+
+export async function POST(req: Request) {
+  try {
+    const { text, mood, category } = await req.json();
+
+    if (!text || text.trim().length < 20) {
+      return NextResponse.json(
+        { error: "Please enter at least a few sentences." },
+        { status: 400 }
+      );
+    }
+
+    const userText = text.trim().slice(0, 6000);
+
+    const systemMessage = `
+You are StorySignal, an interpretive reading tool.
+Your tone is gentle, non-clinical, reflective, and human.
+You only describe the movement of the WRITING itself — never the person.
+
+You must return JSON ONLY in this exact shape:
+
+{
+  "summary": "...",
+  "emotional_signal": "...",
+  "narrative_signal": "...",
+  "key_themes": ["...", "..."],
+  "archetype_distribution": {
+    "The Whisperer": 0-100,
+    "The Rising Voice": 0-100,
+    "The Returning Rhythm": 0-100,
+    "The Rooted Mind": 0-100,
+    "The Revealing Page": 0-100,
+    "The Storyteller": 0-100
+  },
+  "dominant_archetype": "...",
+  "secondary_archetype": "...",
+  "archetype_explanation": "..."
+}
+
+Guidelines:
+- "summary": 3–5 sentences describing the emotional + narrative movement.
+- "emotional_signal": 1–2 sentences about the emotional tone or movement.
+- "narrative_signal": 1–2 sentences about how the writing organises meaning or time.
+- "key_themes": 2–6 short phrases (e.g. "parental love", "future uncertainty").
+- "archetype_distribution": relative expression in THIS writing only (0–100 each).
+- "dominant_archetype": the highest-scoring archetype from the six.
+- "secondary_archetype": the second-highest.
+- "archetype_explanation": 2–3 sentences explaining how the dominant and secondary archetypes work together in this piece of writing.
+
+The six Voice Archetypes you MUST use:
+
+- The Whisperer — quiet, tender, cautious, protective emotional presence.
+- The Rising Voice — emerging clarity, courage, boundary formation.
+- The Returning Rhythm — circling back, memory, integration, repeating emotional patterns.
+- The Rooted Mind — grounded, stabilising, intellectual clarity.
+- The Revealing Page — emotional exposure, honesty, self-revelation.
+- The Storyteller — shaping meaning, narrative momentum, threading pieces into a whole.
+
+Important:
+- Talk ONLY about the writing, not the writer.
+- Do NOT use diagnostic language or clinical terms.
+- Use warm, calm, precise language.
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.4,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: systemMessage },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: userText },
+            mood ? { type: "text", text: `Mood: ${mood}` } : null,
+            category
+              ? { type: "text", text: `Category: ${category}` }
+              : null,
+          ].filter(Boolean) as { type: "text"; text: string }[],
+        },
+      ],
+    });
+
+    const raw = completion.choices[0].message.content || "{}";
+    const parsed = JSON.parse(raw);
+
+    const dist = parsed.archetype_distribution || {};
+
+    const percentages = [
+      dist["The Whisperer"] ?? 0,
+      dist["The Rising Voice"] ?? 0,
+      dist["The Returning Rhythm"] ?? 0,
+      dist["The Rooted Mind"] ?? 0,
+      dist["The Revealing Page"] ?? 0,
+      dist["The Storyteller"] ?? 0,
+    ];
+
+    const normalized = normalizeDistribution(percentages);
+
+    const distNormalized = {
+      "The Whisperer": normalized[0],
+      "The Rising Voice": normalized[1],
+      "The Returning Rhythm": normalized[2],
+      "The Rooted Mind": normalized[3],
+      "The Revealing Page": normalized[4],
+      "The Storyteller": normalized[5],
+    };
+
+    const sorted = Object.entries(distNormalized).sort((a, b) => b[1] - a[1]);
+    const dominant = sorted[0]?.[0] ?? "";
+    const secondary = sorted[1]?.[0] ?? "";
+
+    return NextResponse.json(
+      {
+        summary: parsed.summary ?? "",
+        emotional_signal: parsed.emotional_signal ?? "",
+        narrative_signal: parsed.narrative_signal ?? "",
+        key_themes: parsed.key_themes ?? [],
+        archetype_distribution: distNormalized,
+        dominant_archetype: parsed.dominant_archetype ?? dominant,
+        secondary_archetype: parsed.secondary_archetype ?? secondary,
+        archetype_explanation: parsed.archetype_explanation ?? "",
+      },
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error("Analyze error:", err);
+    return NextResponse.json(
+      { error: "Something went wrong while analyzing the text." },
+      { status: 500 }
+    );
+  }
+}
