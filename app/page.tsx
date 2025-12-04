@@ -51,31 +51,6 @@ export default function HomePage() {
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-useEffect(() => {
-  supabase.auth.getUser().then(({ data }) => {
-    setUserEmail(data.user?.email ?? null);
-  });
-}, []);
-
-  useEffect(() => {
-  const timer = setTimeout(() => {
-    supabase.auth.getUser().then(({ data, error }) => {
-
-      console.log("AUTH CHECK — data:", data);
-      console.log("AUTH CHECK — error:", error);
-
-      if (!data?.user) {
-        console.log("AUTH CHECK — No user found → redirecting");
-        router.push("/login");
-      } else {
-        console.log("AUTH CHECK — User found, staying on homepage");
-      }
-    });
-  }, 300);
-
-  return () => clearTimeout(timer);
-}, []);
-
   // --- END NEW ---
 
 // Existing state hooks
