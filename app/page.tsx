@@ -1,16 +1,29 @@
 "use client";
 
-import { supabase } from "../lib/supabaseClient";
-
-import type { AnalysisResult } from "../lib/analyze";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { analyzeText } from "../lib/analyze";
-
-import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 
-// ----- Static lookups -----
+import { analyzeText, type AnalysisResult } from "../lib/analyze";
+import { supabase } from "../lib/supabaseClient";
+
+// --------------------------------------------
+// TYPES
+// --------------------------------------------
+
+type HistoryItem = {
+  id: number;
+  timestamp: string;
+  dominant: string;
+  textPreview: string;
+  fullText: string;
+  fullResult: AnalysisResult;
+};
+
+// --------------------------------------------
+// STATIC LOOKUPS
+// --------------------------------------------
+
 const MOODS = [
   "Calm",
   "Sad",
@@ -30,30 +43,14 @@ const CATEGORIES = [
   "Overall Wellbeing",
 ];
 
-// ----- Types -----
-type HistoryItem = {
-  id: number;
-  timestamp: string;
-  dominant: string;
-  textPreview: string;
-  fullText: string;
-  fullResult: AnalysisResult;
-};
-
 const CHAR_LIMIT = 2000;
 const DAILY_LIMIT = 5;
 
-
 export default function HomePage() {
-
-// --- NEW: Auth + router setup ---
   const router = useRouter();
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  // --- END NEW ---
-
-// Existing state hooks
   const [text, setText] = useState("");
   const [mood, setMood] = useState("");
   const [category, setCategory] = useState("");
@@ -62,60 +59,72 @@ export default function HomePage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  const [entriesToday, setEntriesToday] = useState(0);
-
+  const [entriesToday, setEntriesToday] = useState(0); // kept for future use
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const canAnalyze = text.trim().length > 0 && !loading;
 
-  // Mark client-hydrated to avoid mismatch + load history
+  // -------------------------------------------------
+  // Client init: auth + history + daily usage
+  // -------------------------------------------------
   useEffect(() => {
-  setHydrated(true);
+    setHydrated(true);
 
-  if (typeof window === "undefined") return;
+    // Auth: fetch logged-in user
+    supabase.auth.getUser().then(({ data }) => {
+      setUserEmail(data.user?.email ?? null);
+    });
 
-  try {
-    // Load history
-    const rawHistory = localStorage.getItem("ss-history") || "[]";
-    const parsedHistory = JSON.parse(rawHistory) as HistoryItem[];
-    setHistory(parsedHistory);
-  } catch {
-    setHistory([]);
-  }
+    if (typeof window === "undefined") return;
 
-  try {
-    // Load daily usage
-    const rawUsage = localStorage.getItem("ss-usage");
-    const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    try {
+      // Load history from localStorage
+      const rawHistory = localStorage.getItem("ss-history") || "[]";
+      const parsedHistory = JSON.parse(rawHistory) as HistoryItem[];
+      setHistory(parsedHistory);
+    } catch {
+      setHistory([]);
+    }
 
-    if (rawUsage) {
-      const parsedUsage = JSON.parse(rawUsage) as { date: string; count: number };
+    try {
+      // Load daily usage
+      const rawUsage = localStorage.getItem("ss-usage");
+      const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
-      if (parsedUsage.date === todayStr) {
-        setEntriesToday(parsedUsage.count || 0);
+      if (rawUsage) {
+        const parsedUsage = JSON.parse(rawUsage) as {
+          date: string;
+          count: number;
+        };
+
+        if (parsedUsage.date === todayStr) {
+          setEntriesToday(parsedUsage.count || 0);
+        } else {
+          // Different day → reset count
+          setEntriesToday(0);
+          localStorage.setItem(
+            "ss-usage",
+            JSON.stringify({ date: todayStr, count: 0 })
+          );
+        }
       } else {
-        // Different day → reset count
-        setEntriesToday(0);
+        // No usage stored yet → initialize
         localStorage.setItem(
           "ss-usage",
           JSON.stringify({ date: todayStr, count: 0 })
         );
+        setEntriesToday(0);
       }
-    } else {
-      // No usage stored yet → initialize
-      localStorage.setItem(
-        "ss-usage",
-        JSON.stringify({ date: todayStr, count: 0 })
-      );
+    } catch {
+      // If anything goes wrong, fall back to 0
       setEntriesToday(0);
     }
-  } catch {
-    // If anything goes wrong, fall back to 0
-    setEntriesToday(0);
-  }
-}, []);
+  }, []);
 
+  // -------------------------------------------------
+  // Analyze handler
+  // -------------------------------------------------
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
@@ -128,28 +137,28 @@ export default function HomePage() {
     }
 
     // ---- Daily Limit Check (simple, safe, local-only) ----
-try {
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  const rawUsage = localStorage.getItem("ss-usage");
+    try {
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const rawUsage = localStorage.getItem("ss-usage");
 
-  let usage = rawUsage
-    ? JSON.parse(rawUsage)
-    : { date: today, count: 0 };
+      let usage = rawUsage ? JSON.parse(rawUsage) : { date: today, count: 0 };
 
-  // Reset if different day
-  if (usage.date !== today) {
-    usage = { date: today, count: 0 };
-    localStorage.setItem("ss-usage", JSON.stringify(usage));
-  }
+      // Reset if different day
+      if (usage.date !== today) {
+        usage = { date: today, count: 0 };
+        localStorage.setItem("ss-usage", JSON.stringify(usage));
+      }
 
-  // Enforce limit
-  if (usage.count >= DAILY_LIMIT) {
-    setError(`You've reached your daily limit of ${DAILY_LIMIT} readings. Please come back tomorrow.`);
-    return;
-  }
-} catch {
-  // If anything goes wrong, allow usage but don't crash
-}
+      // Enforce limit
+      if (usage.count >= DAILY_LIMIT) {
+        setError(
+          `You've reached your daily limit of ${DAILY_LIMIT} readings. Please come back tomorrow.`
+        );
+        return;
+      }
+    } catch {
+      // If anything goes wrong, allow usage but don't crash
+    }
 
     setLoading(true);
     setError(null);
@@ -161,7 +170,7 @@ try {
       const item: HistoryItem = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
-        dominant: res.dominant_archetype,
+        dominant: res.dominant_archetype || "Unknown",
         textPreview: text.slice(0, 160),
         fullText: text,
         fullResult: res,
@@ -183,27 +192,24 @@ try {
       );
       setResult(null);
     } finally {
+      // ---- Increment daily usage count ----
+      try {
+        const today = new Date().toISOString().slice(0, 10);
+        const rawUsage = localStorage.getItem("ss-usage");
 
-// ---- Increment daily usage count ----
-try {
-  const today = new Date().toISOString().slice(0, 10);
-  const rawUsage = localStorage.getItem("ss-usage");
+        let usage = rawUsage ? JSON.parse(rawUsage) : { date: today, count: 0 };
 
-  let usage = rawUsage
-    ? JSON.parse(rawUsage)
-    : { date: today, count: 0 };
+        // Reset if needed (safety)
+        if (usage.date !== today) {
+          usage = { date: today, count: 0 };
+        }
 
-  // Reset if needed (safety)
-  if (usage.date !== today) {
-    usage = { date: today, count: 0 };
-  }
+        usage.count += 1;
 
-  usage.count += 1;
-
-  localStorage.setItem("ss-usage", JSON.stringify(usage));
-} catch {
-  // fail silently — do NOT block the user
-}
+        localStorage.setItem("ss-usage", JSON.stringify(usage));
+      } catch {
+        // fail silently — do NOT block the user
+      }
 
       setLoading(false);
     }
@@ -211,56 +217,57 @@ try {
 
   const visibleHistory = history.slice().reverse(); // newest first
 
+  // -------------------------------------------------
+  // RENDER
+  // -------------------------------------------------
   return (
     <main className="ss-root">
-      
       <div className="ss-shell">
         <div className="ss-panels">
           {/* LEFT PANEL ----------------------------------------------------- */}
           <section className="ss-card ss-left-panel">
-            
             {/* Brand header */}
-<div className="ss-left-header">
-  <div className="ss-logo-circle">
-    <Image
-      src="/tes-logo.png"
-      alt="StorySignal logo"
-      width={52}
-      height={52}
-    />
-  </div>
+            <div className="ss-left-header">
+              <div className="ss-logo-circle">
+                <Image
+                  src="/tes-logo.png"
+                  alt="StorySignal logo"
+                  width={52}
+                  height={52}
+                />
+              </div>
 
-  <div className="ss-left-brand-block">
-    <div className="ss-brand-title">
-      StorySignal<span className="ss-brand-mark">™</span>
-    </div>
-    <div className="ss-tagline">
-      A gentle reflection tool for your writing.
-    </div>
-  </div>
-</div>
+              <div className="ss-left-brand-block">
+                <div className="ss-brand-title">
+                  StorySignal<span className="ss-brand-mark">™</span>
+                </div>
+                <div className="ss-tagline">
+                  A gentle reflection tool for your writing.
+                </div>
+              </div>
+            </div>
 
-{userEmail && (
-  <div
-    className="ss-user-email"
-    style={{ marginTop: "12px", fontSize: "0.9rem", opacity: 0.9 }}
-  >
-    Logged in as: <strong>{userEmail}</strong>
-  </div>
-)}
+            {userEmail && (
+              <div
+                className="ss-user-email"
+                style={{ marginTop: "12px", fontSize: "0.9rem", opacity: 0.9 }}
+              >
+                Logged in as: <strong>{userEmail}</strong>
+              </div>
+            )}
 
-{userEmail && (
-  <button
-    className="ss-button ss-button-small"
-    style={{ marginTop: "8px" }}
-    onClick={async () => {
-      await supabase.auth.signOut();
-      router.push("/login");
-    }}
-  >
-    Logout
-  </button>
-)}
+            {userEmail && (
+              <button
+                className="ss-button ss-button-small"
+                style={{ marginTop: "8px" }}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push("/login");
+                }}
+              >
+                Logout
+              </button>
+            )}
 
             {/* Input form */}
             <form className="ss-form" onSubmit={handleAnalyze}>
@@ -268,7 +275,8 @@ try {
               <div className="ss-field-group">
                 <label className="ss-label ss-label-strong">Your input</label>
                 <p className="ss-helper-text ss-helper-top">
-                Free mode — up to {DAILY_LIMIT} readings per day, stored only on this device.
+                  Free mode — up to {DAILY_LIMIT} readings per day, stored only
+                  on this device.
                 </p>
 
                 <textarea
@@ -383,9 +391,9 @@ try {
                     </p>
                   </div>
 
-                  {/* Dominant archetype */}
+                  {/* Dominant voice state (was: archetype) */}
                   <div className="ss-result-block">
-                    <h3 className="ss-section-title">Dominant archetype</h3>
+                    <h3 className="ss-section-title">Dominant voice state</h3>
                     <p className="ss-result-body">
                       <strong>{result.dominant_archetype}</strong>
                       {result.secondary_archetype
@@ -397,11 +405,11 @@ try {
                     </p>
                   </div>
 
-                  {/* Distribution */}
+                  {/* Voice state distribution (was: archetype distribution) */}
                   {result.archetype_distribution && (
                     <div className="ss-result-block">
                       <h3 className="ss-section-title">
-                        Archetype distribution
+                        Voice state distribution
                       </h3>
                       <div className="ss-arch-grid">
                         {Object.entries(
@@ -469,26 +477,27 @@ try {
               <div className="ss-muted">No history yet.</div>
             ) : (
               <ul className="ss-history-list">
-  {visibleHistory.map((item) => (
-    <li key={item.id} className="ss-history-item">
-      <div className="ss-history-dominant">
-        {item.fullResult?.dominant_archetype || "—"}
-      </div>
+                {visibleHistory.map((item) => (
+                  <li key={item.id} className="ss-history-item">
+                    <div className="ss-history-dominant">
+                      {item.fullResult?.dominant_archetype || "—"}
+                    </div>
 
-      <div className="ss-history-summary">
-        {item.fullResult?.summary || "No summary available."}
-      </div>
+                    <div className="ss-history-summary">
+                      {item.fullResult?.summary || "No summary available."}
+                    </div>
 
-      <div className="ss-history-date">
-        {new Date(item.timestamp).toLocaleDateString()}
-      </div>
-    </li>
-  ))}
-</ul>
+                    <div className="ss-history-date">
+                      {new Date(item.timestamp).toLocaleDateString()}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
 
             <div className="ss-history-footnote">
-              Free mode keeps your last three readings saved only on this device.
+              Free mode keeps your last three readings saved only on this
+              device.
             </div>
           </div>
         )}
@@ -496,4 +505,3 @@ try {
     </main>
   );
 }
-
