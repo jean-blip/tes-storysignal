@@ -59,9 +59,16 @@ useEffect(() => {
 
   useEffect(() => {
   const timer = setTimeout(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
+    supabase.auth.getUser().then(({ data, error }) => {
+
+      console.log("AUTH CHECK — data:", data);
+      console.log("AUTH CHECK — error:", error);
+
+      if (!data?.user) {
+        console.log("AUTH CHECK — No user found → redirecting");
         router.push("/login");
+      } else {
+        console.log("AUTH CHECK — User found, staying on homepage");
       }
     });
   }, 300);
