@@ -49,6 +49,14 @@ export default function HomePage() {
 // --- NEW: Auth + router setup ---
   const router = useRouter();
 
+  useEffect(() => {
+  supabase.auth.getUser().then(({ data }) => {
+    if (!data.user) {
+      router.push("/login");
+    }
+  });
+}, []);
+
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
