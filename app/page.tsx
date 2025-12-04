@@ -49,21 +49,26 @@ export default function HomePage() {
 // --- NEW: Auth + router setup ---
   const router = useRouter();
 
-  useEffect(() => {
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+useEffect(() => {
   supabase.auth.getUser().then(({ data }) => {
-    if (!data.user) {
-      router.push("/login");
-    }
+    setUserEmail(data.user?.email ?? null);
   });
 }, []);
 
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-
   useEffect(() => {
+  const timer = setTimeout(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setUserEmail(data.user?.email ?? null);
+      if (!data.user) {
+        router.push("/login");
+      }
     });
-  }, []);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, []);
+
   // --- END NEW ---
 
 // Existing state hooks
