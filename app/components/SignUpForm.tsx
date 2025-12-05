@@ -32,31 +32,40 @@ export default function SignUpForm() {
       const res = await fetch("/api/auth/sign-up", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-  const msg = (data.error || "").toLowerCase();
+        const msg = (data.error || "").toLowerCase();
 
-  // --- Handle "email already registered" clearly ---
-  if (
-    msg.includes("already registered") ||
-    msg.includes("email already exists") ||
-    msg.includes("email address already exists")
-  ) {
-    setError("This email is already registered. Please log in instead.");
-    return;
-  }
+        if (
+          msg.includes("already registered") ||
+          msg.includes("email already exists") ||
+          msg.includes("email address already exists")
+        ) {
+          setError("This email is already registered. Please log in instead.");
+          setLoading(false);
+          return;
+        }
 
-  // All other errors → show original error
-  setError(data.error || "Something went wrong.");
-  return;
-}
+        setError(data.error || "Something went wrong.");
+        setLoading(false);
+        return;
+      }
+
+      // ---------------------------------------------------------------
+      // ✅ SUCCESS → user must confirm email
+      // ---------------------------------------------------------------
+      setMessage(
+        "Your account has been created. Please check your inbox — we’ve sent you a confirmation link."
+      );
+
+      // Optional UI cleanup
+      setEmail("");
+      setPassword("");
+      setConfirm("");
 
     } catch (err) {
       setError("Network error. Please try again.");
