@@ -66,3 +66,39 @@
   margin-bottom: 8px;
 }
 
+.successBanner {
+  background-color: #E8FBEA;
+  color: #1B7F2C;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 10px;
+  border-left: 4px solid #28A745;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.errorBanner {
+  background-color: #FDE8E8;
+  color: #B91C1C;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 10px;
+  border-left: 4px solid #DC2626;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.resendBtn {
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: #1B4DBF;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

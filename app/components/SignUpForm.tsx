@@ -11,8 +11,10 @@ export default function SignUpForm() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");      // success
-  const [error, setError] = useState("");          // errors
+  const [message, setMessage] = useState("");      
+  const [error, setError] = useState("");          
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
 
   const passwordsMatch = password === confirm && confirm.length > 0;
 
@@ -20,6 +22,7 @@ export default function SignUpForm() {
     e.preventDefault();
     setError("");
     setMessage("");
+    setResendMessage("");
 
     if (!passwordsMatch) {
       setError("Your passwords do not match.");
@@ -55,23 +58,55 @@ export default function SignUpForm() {
         return;
       }
 
-      // ---------------------------------------------------------------
-      // ✅ SUCCESS → user must confirm email
-      // ---------------------------------------------------------------
+      // SUCCESS
       setMessage(
-        "Your account has been created. Please check your inbox — we’ve sent you a confirmation link."
+        data.message ||
+          "Your account has been created. Please check your inbox — we’ve sent you a confirmation link."
       );
 
-      // Optional UI cleanup
       setEmail("");
       setPassword("");
       setConfirm("");
+
+      // ---- Auto-redirect to login after 8 seconds ----
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 8000);
 
     } catch (err) {
       setError("Network error. Please try again.");
     }
 
     setLoading(false);
+  }
+
+  // ---- Resend confirmation email ----
+  async function resendEmail() {
+    setResendLoading(true);
+    setResendMessage("");
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/resend-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Unable to resend confirmation email.");
+        setResendLoading(false);
+        return;
+      }
+
+      setResendMessage("We’ve sent a new confirmation email.");
+    } catch (err) {
+      setError("Network error. Please try again.");
+    }
+
+    setResendLoading(false);
   }
 
   return (
@@ -127,7 +162,24 @@ export default function SignUpForm() {
       {error && <p className={styles.errorBanner}>{error}</p>}
 
       {/* SUCCESS MESSAGE */}
-      {message && <p className={styles.successBanner}>{message}</p>}
+      {message && (
+        <>
+          <p className={styles.successBanner}>{message}</p>
+
+          <button
+            type="button"
+            className={styles.resendBtn}
+            disabled={resendLoading}
+            onClick={resendEmail}
+          >
+            {resendLoading ? "Sending…" : "Resend confirmation email"}
+          </button>
+
+          {resendMessage && (
+            <p className={styles.successBanner}>{resendMessage}</p>
+          )}
+        </>
+      )}
 
       <button type="submit" disabled={!passwordsMatch || loading}>
         {loading ? "Creating account…" : "Create Free Account"}
