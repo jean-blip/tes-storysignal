@@ -1,0 +1,172 @@
+/* ================================================
+   Journey section — horizontal scroll of past readings
+   ================================================ */
+
+.section {
+  margin-top: 24px;
+  background: linear-gradient(180deg, var(--ink2), #19140d);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px 26px;
+}
+
+/* Header row */
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.heading {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.35rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin: 4px 0 0;
+  font-family: var(--sans);
+}
+
+.upsellBtn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(224, 160, 42, 0.4);
+  background: rgba(224, 160, 42, 0.08);
+  color: var(--gold-soft);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease;
+}
+
+.upsellBtn:hover {
+  background: rgba(224, 160, 42, 0.16);
+}
+
+/* Empty state */
+.empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 16px 0 0;
+  font-family: var(--sans);
+}
+
+/* Scroll row */
+.scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 18px 2px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(224, 160, 42, 0.22) transparent;
+}
+
+.scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: rgba(224, 160, 42, 0.22);
+  border-radius: 6px;
+}
+
+/* Individual reading card */
+.card {
+  flex: none;
+  width: 230px;
+  text-align: left;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dominantName {
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  color: var(--text);
+}
+
+.summary {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--soft);
+  margin: 0 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-family: var(--sans);
+}
+
+.date {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-family: var(--sans);
+}
+
+/* Locked / upsell card */
+.lockedCard {
+  flex: none;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  color: var(--muted);
+  font-family: var(--sans);
+}
+
+.lockedIcon {
+  font-size: 1.4rem;
+  opacity: 0.5;
+}
+
+.lockedText {
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* Footnote */
+.footnote {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin: 6px 0 0;
+  font-family: var(--sans);
+}

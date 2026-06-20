@@ -1,0 +1,73 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 2px 22px;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.brandName {
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.brandTagline {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-family: var(--sans);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navBtn {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  background: transparent;
+  border-radius: 999px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.navBtn:hover {
+  border-color: var(--gold);
+  color: var(--gold-soft);
+}
+
+.signOutBtn {
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.signOutBtn:hover {
+  color: var(--text);
+}

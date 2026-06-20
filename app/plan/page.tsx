@@ -1,88 +1,112 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
+import styles from "./Plan.module.css";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [sending, setSending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+const FREE_FEATURES = [
+  { icon: "✓", label: "Up to 5 readings per day",               muted: false },
+  { icon: "✓", label: "Full voice-state reading each time",      muted: false },
+  { icon: "✓", label: "Your last 3 readings, on this device",    muted: false },
+  { icon: "—", label: "No long-term journey or trends",          muted: true  },
+];
 
-  const handleSendMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setMessage(null);
+const PAID_FEATURES = [
+  { icon: "✓", label: "Unlimited readings, no daily cap",                    muted: false },
+  { icon: "✦", label: "Every reading kept — your full journey, retained",    muted: false, gold: true },
+  { icon: "✦", label: "See how your voice states shift across time",         muted: false, gold: true },
+  { icon: "✓", label: "Revisit and continue any past reflection",            muted: false },
+  { icon: "✓", label: "Synced across your devices",                          muted: false },
+];
 
-    if (!email.trim()) {
-      setError("Please enter your email.");
-      return;
-    }
-
-    try {
-      setSending(true);
-
-      const redirectTo =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/auth/callback`
-          : undefined;
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: redirectTo },
-      });
-
-      if (error) {
-        console.error(error);
-        setError("Could not send magic link. Try again.");
-      } else {
-        setMessage("Magic link sent! Check your email.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Unexpected error. Try again.");
-    } finally {
-      setSending(false);
-    }
-  };
+export default function PlanPage() {
+  // In production this derives from Supabase is_paid.
+  // For now treat everyone as free so the upgrade CTA is always visible.
+  const isPaid = false;
 
   return (
-    <div className="mt-10 max-w-md mx-auto rounded-2xl border border-[#262334] bg-[#181522] px-6 py-6 text-sm text-slate-200">
-      <div className="flex items-center gap-3 mb-4">
-        <Image src="/tes-logo.png" alt="TES" width={30} height={30} />
-        <div className="text-lg font-semibold">StorySignal™</div>
+    <div className={styles.page}>
+      <div className={styles.inner}>
+
+        {/* Header */}
+        <header className={styles.header}>
+          <Link href="/" className={styles.backBtn}>← Back</Link>
+          <div className={styles.wordmark}>
+            <Image src="/tes-logo.png" alt="" width={26} height={26} />
+            <span className={styles.wordmarkText}>StorySignal</span>
+          </div>
+        </header>
+
+        {/* Intro */}
+        <div className={styles.intro}>
+          <h1 className={styles.title}>Follow the whole thread.</h1>
+          <p className={styles.subtitle}>
+            No voice state is better than another — and neither is a single
+            reading. The meaning lives in the movement between them, over time.
+          </p>
+        </div>
+
+        {/* Plan cards */}
+        <div className={styles.grid}>
+
+          {/* Free */}
+          <div className={styles.freeCard}>
+            <span className={`${styles.tierLabel} ${styles.tierLabelFree}`}>Free</span>
+            <div className={styles.price}>
+              <span className={styles.priceAmount}>$0</span>
+              <span className={styles.pricePer}>/ forever</span>
+            </div>
+            <p className={styles.cardSub}>For the occasional check-in.</p>
+            <div className={styles.features}>
+              {FREE_FEATURES.map((f) => (
+                <div key={f.label} className={styles.feature}>
+                  <span className={styles.featureIcon}>{f.icon}</span>
+                  <span style={{ color: f.muted ? "var(--muted)" : "var(--text)" }}>
+                    {f.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button
+              className={`${styles.freeBtn} ${isPaid ? "" : styles.currentPlanBtn}`}
+              disabled={!isPaid}
+            >
+              {isPaid ? "Switch to Free" : "Your current plan"}
+            </button>
+          </div>
+
+          {/* Premium */}
+          <div className={styles.paidCard}>
+            <span className={styles.badge}>Keeps your memory</span>
+            <span className={`${styles.tierLabel} ${styles.tierLabelPaid}`}>Premium</span>
+            <div className={styles.price}>
+              <span className={styles.priceAmount}>$9</span>
+              <span className={styles.pricePer}>/ month</span>
+            </div>
+            <p className={styles.cardSub}>For an unbroken, evolving reflection practice.</p>
+            <div className={styles.features}>
+              {PAID_FEATURES.map((f) => (
+                <div key={f.label} className={styles.feature}>
+                  <span className={styles.featureIcon}>{f.icon}</span>
+                  <span style={{ color: f.gold ? "var(--gold-soft)" : "var(--text)" }}>
+                    {f.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button
+              className={`${styles.paidBtn} ${isPaid ? styles.currentPlanBtn : ""}`}
+              disabled={isPaid}
+            >
+              {isPaid ? "Your current plan" : "Upgrade to Premium"}
+            </button>
+          </div>
+
+        </div>
+
+        <p className={styles.finePrint}>Cancel anytime. Your readings remain yours.</p>
+
       </div>
-
-      <h1 className="text-base font-semibold mb-2">Sign in with a magic link</h1>
-      <p className="text-xs text-slate-400 mb-4">
-        Enter your email and we’ll send a secure link to log in.
-      </p>
-
-      <form onSubmit={handleSendMagicLink}>
-        <input
-          type="email"
-          className="w-full mb-3 px-3 py-2 rounded bg-[#1f1e24] text-slate-200 border border-[#3a3648]"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <button
-          type="submit"
-          className="w-full py-2 rounded bg-[#ee9d1a] text-black font-semibold hover:opacity-90"
-          disabled={sending}
-        >
-          {sending ? "Sending…" : "Send Magic Link"}
-        </button>
-      </form>
-
-      {error && <div className="mt-3 text-red-400">{error}</div>}
-      {message && <div className="mt-3 text-green-400">{message}</div>}
-
-      <p className="text-xs text-slate-500 mt-4 text-center">
-        No password needed. The magic link signs you in.
-      </p>
     </div>
   );
 }

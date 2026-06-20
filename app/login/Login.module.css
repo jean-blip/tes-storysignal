@@ -1,0 +1,331 @@
+/* ================================================
+   Login / Sign-up screen
+   ================================================ */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  background: radial-gradient(120% 90% at 50% -10%, #2a2114 0, #19150e 42%, #100d08 100%);
+}
+
+.grid {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 820px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .brand {
+    display: none;
+  }
+}
+
+/* ---- Brand half ---- */
+.brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px 56px;
+  position: relative;
+}
+
+.brandTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 54px;
+}
+
+.brandName {
+  font-family: var(--serif);
+  font-size: 1.18rem;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.halo {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 40%, rgba(224, 160, 42, 0.16), transparent 70%);
+  margin-bottom: 38px;
+}
+
+.haloLogo {
+  animation: ss-breathe 7s ease-in-out infinite;
+}
+
+.headline {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 2.7rem;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin: 0 0 18px;
+  max-width: 14ch;
+}
+
+.brandBody {
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: var(--soft);
+  max-width: 42ch;
+  margin: 0 0 30px;
+  font-family: var(--sans);
+}
+
+.sixNote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  font-family: var(--sans);
+}
+
+.goldDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex: none;
+}
+
+/* ---- Auth half ---- */
+.authWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 56px 48px 40px;
+}
+
+@media (max-width: 820px) {
+  .authWrap {
+    padding: 48px 24px;
+  }
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(40, 33, 22, 0.92), rgba(26, 21, 14, 0.92));
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 34px 32px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+}
+
+/* Tab switcher */
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 26px;
+}
+
+.tab {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  border: none;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tabActive {
+  background: var(--ink3);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.tabInactive {
+  background: transparent;
+  color: var(--muted);
+}
+
+/* Card heading */
+.cardTitle {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.6rem;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.cardSub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 24px;
+  font-family: var(--sans);
+}
+
+/* Fields */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fieldLabel {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--sans);
+}
+
+.fieldRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.forgotLink {
+  font-size: 0.78rem;
+  color: var(--gold-soft);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: var(--sans);
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.input {
+  width: 100%;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+/* Primary button */
+.primaryBtn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+  color: #2a1a05;
+  background: linear-gradient(95deg, var(--gold), var(--gold-soft));
+  box-shadow: 0 14px 30px rgba(224, 160, 42, 0.22);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-family: var(--sans);
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Free mode button */
+.freeBtn {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.freeBtn:hover {
+  border-color: var(--gold);
+  color: var(--gold-soft);
+}
+
+/* Feedback */
+.errorMsg {
+  margin-top: 10px;
+  border: 1px solid rgba(214, 120, 90, 0.4);
+  background: rgba(150, 60, 40, 0.14);
+  color: #f0cdbe;
+  border-radius: 11px;
+  padding: 10px 13px;
+  font-size: 0.84rem;
+  font-family: var(--sans);
+}
+
+.successMsg {
+  margin-top: 10px;
+  color: #a9bd8f;
+  font-size: 0.84rem;
+  font-family: var(--sans);
+}
+
+.finePrint {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.74rem;
+  margin: 18px 0 0;
+  line-height: 1.5;
+  font-family: var(--sans);
+}

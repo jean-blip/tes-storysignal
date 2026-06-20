@@ -1,7 +1,64 @@
 @import "tailwindcss";
 
 /* -------------------------------------------------
-   Global base
+   StorySignal redesign — design tokens
+   (--ink / --gold palette; new serif/sans fonts)
+------------------------------------------------- */
+
+:root {
+  --serif: 'Newsreader', Georgia, serif;
+  --sans: 'Geist', system-ui, -apple-system, sans-serif;
+
+  /* Ink palette */
+  --ink:  #15120d;
+  --ink2: #1e1812;
+  --ink3: #271f16;
+  --line: rgba(232, 210, 170, 0.10);
+
+  /* Gold accent */
+  --gold:      #e0a02a;
+  --gold-soft: #f0c878;
+
+  /* Text */
+  --text:  #efe7d8;
+  --soft:  #b6ab97;
+  --muted: #8b8170;
+
+  /* Paper card */
+  --cream: #f3ead9;
+
+  /* Voice-state hues */
+  --hue-whisperer:  #c9b4d8;
+  --hue-rising:     #e0b265;
+  --hue-returning:  #8fc2bd;
+  --hue-rooted:     #a9bd8f;
+  --hue-revealing:  #e0a489;
+  --hue-storyteller:#9fb4d6;
+}
+
+/* Keyframes shared across the redesign */
+@keyframes ss-breathe {
+  0%, 100% { transform: scale(1);     opacity: .92; }
+  50%       { transform: scale(1.045);opacity: 1;   }
+}
+@keyframes ss-rise {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes ss-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Responsive collapse for the two-panel app grid */
+@media (max-width: 820px) {
+  .ss-app-panels {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* -------------------------------------------------
+   Original tokens (kept until full redesign lands)
 ------------------------------------------------- */
 
 :root {
@@ -32,6 +89,10 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html {
+  font-size: 19px;
 }
 
 html,

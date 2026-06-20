@@ -1,6 +1,5 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Header from "./header";
 
 export const metadata: Metadata = {
   title: "StorySignal",
@@ -14,11 +13,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Geist:wght@300..600&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
-        {/* Top header: logo + logout */}
-        <Header />
-
-        {/* Your existing app UI from app/page.tsx */}
         {children}
       </body>
     </html>
