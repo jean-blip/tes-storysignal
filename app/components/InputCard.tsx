@@ -4,6 +4,31 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./InputCard.module.css";
 
+// Web Speech API types (not in lib.dom.d.ts for all environments)
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+interface SpeechRecognitionInstance {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  continuous: boolean;
+  start(): void;
+  stop(): void;
+  onresult: ((e: SpeechRecognitionEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+}
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
 // -------------------------------------------------------
 // Constants
 // -------------------------------------------------------
@@ -104,14 +129,13 @@ export default function InputCard({
   onVoiceChange,
 }: Props) {
   const router = useRouter();
-  const recognitionRef = useRef<InstanceType<typeof window.SpeechRecognition> | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const [listening, setListening] = useState(false);
 
   function handleMic() {
     if (!isPaid) { router.push("/plan"); return; }
 
-    const SR = (window as typeof window & { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition
-            ?? (window as typeof window & { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition;
+    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
 
     if (!SR) {
       alert("Speech recognition isn't supported in this browser. Try Chrome or Safari.");

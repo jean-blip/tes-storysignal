@@ -14,8 +14,7 @@
     "openai": "^6.9.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "stripe": "^22.2.2",
-    "vercel": "^48.12.1"
+    "stripe": "^22.2.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
