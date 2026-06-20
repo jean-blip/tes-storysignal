@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
+import { supabase } from "../../lib/supabaseClient";
 import styles from "./ReadingCard.module.css";
 
 // -------------------------------------------------------
@@ -145,10 +147,51 @@ function buildBloom(dist: DistributionEntry[]) {
 
 type Props = {
   reading: VoiceReading | null;
+  entryId?: string | null;
+  originalText?: string;
   onUsePrompt?: (text: string) => void;
 };
 
-export default function ReadingCard({ reading, onUsePrompt }: Props) {
+export default function ReadingCard({ reading, entryId, originalText, onUsePrompt }: Props) {
+  const [keepWords, setKeepWords] = useState(false);
+  const [copied, setCopied]       = useState(false);
+  const [deleted, setDeleted]     = useState(false);
+
+  async function handleKeepToggle() {
+    if (!entryId) return;
+    const next = !keepWords;
+    setKeepWords(next);
+    await supabase
+      .from("storysignal_entries")
+      .update({ kept_text: next ? (originalText ?? null) : null })
+      .eq("id", entryId);
+  }
+
+  async function handleDelete() {
+    if (!entryId) return;
+    if (!confirm("Delete this reading? This cannot be undone.")) return;
+    await supabase.from("storysignal_entries").delete().eq("id", entryId);
+    setDeleted(true);
+  }
+
+  async function handleCopy() {
+    if (!originalText) return;
+    try {
+      await navigator.clipboard.writeText(originalText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback: select a temp textarea
+      const el = document.createElement("textarea");
+      el.value = originalText;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
   // Sort distribution descending for the legend
   const sortedDist = reading
     ? [...reading.distribution].sort((a, b) => b.value - a.value)
@@ -283,6 +326,35 @@ export default function ReadingCard({ reading, onUsePrompt }: Props) {
               ))}
             </div>
           </div>
+
+          {/* Keep-words toggle — only when an entry is saved */}
+          {entryId && !deleted && (
+            <div className={styles.memoryBar}>
+              <label className={styles.keepToggle}>
+                <input
+                  type="checkbox"
+                  checked={keepWords}
+                  onChange={handleKeepToggle}
+                  className={styles.keepCheckbox}
+                />
+                <span className={styles.keepLabel}>Keep the words of this entry</span>
+              </label>
+              {keepWords && originalText && (
+                <div className={styles.keptBlock}>
+                  <p className={styles.keptText}>{originalText}</p>
+                  <button className={styles.copyBtn} onClick={handleCopy}>
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              )}
+              <button className={styles.deleteBtn} onClick={handleDelete}>
+                Delete this reading
+              </button>
+            </div>
+          )}
+          {deleted && (
+            <p className={styles.deletedNote}>Reading deleted.</p>
+          )}
 
           <p className={styles.disclaimer}>
             StorySignal offers gentle, non-clinical reflection. It does not replace professional support.

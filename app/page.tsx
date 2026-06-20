@@ -54,6 +54,8 @@ export default function HomePage() {
 
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [voiceReading, setVoiceReading] = useState<VoiceReading | null>(null);
+  const [entryId, setEntryId] = useState<string | null>(null);
+  const [lastText, setLastText] = useState("");
   const [journey, setJourney] = useState<JourneyItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
@@ -179,12 +181,20 @@ export default function HomePage() {
       const vr = toVoiceReading(res);
       setVoiceReading(vr);
 
-      // Save to Supabase
+      // Save to Supabase — capture the returned id for the keep-words toggle
       if (userEmail) {
-        await supabase.from("storysignal_entries").insert({
-          email: userEmail,
-          result: res,
-        });
+        const { data: inserted } = await supabase
+          .from("storysignal_entries")
+          .insert({
+            email:       userEmail,
+            result:      res,
+            dominant:    vr.dominant.name,
+            active_pair: vr.secondary.name,
+          })
+          .select("id")
+          .single();
+        setEntryId(inserted?.id ?? null);
+        setLastText(text);
       }
 
       const item: JourneyItem = {
@@ -270,6 +280,8 @@ export default function HomePage() {
           {/* RIGHT PANEL — new ReadingCard design ----------------------------- */}
           <ReadingCard
             reading={voiceReading}
+            entryId={entryId}
+            originalText={lastText}
             onUsePrompt={(p) => setText(p)}
           />
         </div>

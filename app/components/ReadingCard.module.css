@@ -383,6 +383,94 @@
   font-family: var(--sans);
 }
 
+/* Memory bar — keep-words toggle + delete */
+.memoryBar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: rgba(255,255,255,0.02);
+}
+
+.keepToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.keepCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+  cursor: pointer;
+  flex: none;
+}
+
+.keepLabel {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--soft);
+}
+
+.keptBlock {
+  background: rgba(0,0,0,0.18);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.keptText {
+  font-family: var(--serif);
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--text);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.copyBtn {
+  align-self: flex-end;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  color: var(--soft);
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: border-color 0.15s;
+}
+
+.copyBtn:hover { border-color: var(--gold); color: var(--gold-soft); }
+
+.deleteBtn {
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--sans);
+  text-align: left;
+  text-decoration: underline;
+  opacity: 0.7;
+}
+
+.deleteBtn:hover { color: #e08080; opacity: 1; }
+
+.deletedNote {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: var(--sans);
+  margin-bottom: 16px;
+}
+
 /* Disclaimer */
 .disclaimer {
   font-size: 0.72rem;
