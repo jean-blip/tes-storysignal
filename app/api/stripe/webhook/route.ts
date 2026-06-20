@@ -12,8 +12,7 @@ export async function POST(req: Request) {
   async function setIsPaid(email: string, paid: boolean) {
     await supabase
       .from("storysignal_users")
-      .update({ is_paid: paid })
-      .eq("email", email);
+      .upsert({ email, is_paid: paid }, { onConflict: "email" });
   }
   const body      = await req.text();
   const signature = req.headers.get("stripe-signature") ?? "";
