@@ -95,10 +95,10 @@ export default function PlanPage() {
               ))}
             </div>
             <button
-              className={`${styles.paidBtn} ${isPaid ? styles.currentPlanBtn : ""}`}
-              disabled={isPaid}
+              className={`${styles.paidBtn} ${styles.currentPlanBtn}`}
+              disabled
             >
-              {isPaid ? "Your current plan" : "Upgrade to Premium"}
+              Coming soon
             </button>
           </div>
 
