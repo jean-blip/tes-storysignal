@@ -249,3 +249,45 @@
   background: var(--gold);
   flex: none;
 }
+
+/* Mic / speak-to-type button */
+.micBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--soft);
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.micBtn:hover:not(.micBtnLocked) {
+  border-color: rgba(224,160,42,0.4);
+  color: var(--text);
+}
+
+.micBtnActive {
+  border-color: #e08080;
+  color: #e08080;
+  animation: ss-breathe 2s ease-in-out infinite;
+}
+
+.micBtnLocked {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.micIcon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.micLabel {
+  line-height: 1;
+}

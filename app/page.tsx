@@ -59,6 +59,7 @@ export default function HomePage() {
   const [voiceReading, setVoiceReading] = useState<VoiceReading | null>(null);
   const [entryId, setEntryId] = useState<string | null>(null);
   const [lastText, setLastText] = useState("");
+  const [isVoice, setIsVoice] = useState(false);
   const [journey, setJourney] = useState<JourneyItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
@@ -220,11 +221,13 @@ export default function HomePage() {
             result:      res,
             dominant:    vr.dominant.name,
             active_pair: vr.secondary.name,
+            via_voice:   isVoice,
           })
           .select("id")
           .single();
         setEntryId(inserted?.id ?? null);
         setLastText(text);
+        setIsVoice(false);
       }
 
       const item: JourneyItem = {
@@ -305,6 +308,7 @@ export default function HomePage() {
             onMoodChange={setMood}
             onCategoryChange={setCategory}
             onAnalyze={() => handleAnalyze({ preventDefault: () => {} } as React.FormEvent)}
+            onVoiceChange={setIsVoice}
           />
 
           {/* RIGHT PANEL — new ReadingCard design ----------------------------- */}

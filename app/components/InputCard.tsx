@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./InputCard.module.css";
 
 // -------------------------------------------------------
@@ -80,6 +82,7 @@ type Props = {
   onMoodChange: (mood: string) => void;
   onCategoryChange: (category: string) => void;
   onAnalyze: () => void;
+  onVoiceChange?: (isVoice: boolean) => void;
 };
 
 // -------------------------------------------------------
@@ -98,7 +101,51 @@ export default function InputCard({
   onMoodChange,
   onCategoryChange,
   onAnalyze,
+  onVoiceChange,
 }: Props) {
+  const router = useRouter();
+  const recognitionRef = useRef<InstanceType<typeof window.SpeechRecognition> | null>(null);
+  const [listening, setListening] = useState(false);
+
+  function handleMic() {
+    if (!isPaid) { router.push("/plan"); return; }
+
+    const SR = (window as typeof window & { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition
+            ?? (window as typeof window & { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition;
+
+    if (!SR) {
+      alert("Speech recognition isn't supported in this browser. Try Chrome or Safari.");
+      return;
+    }
+
+    if (listening) {
+      recognitionRef.current?.stop();
+      setListening(false);
+      return;
+    }
+
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.continuous = true;
+
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const transcript = Array.from(e.results)
+        .map((r) => r[0].transcript)
+        .join(" ");
+      onTextChange((text + " " + transcript).trimStart());
+      onVoiceChange?.(true);
+    };
+
+    rec.onerror = () => { setListening(false); };
+    rec.onend   = () => { setListening(false); };
+
+    recognitionRef.current = rec;
+    rec.start();
+    setListening(true);
+  }
+
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isReady = words >= MIN_WORDS;
   const { fillPct, fillColor, label, labelColor } = getReadiness(words);
@@ -136,6 +183,19 @@ export default function InputCard({
           {text.length.toLocaleString()} / {CHAR_LIMIT.toLocaleString()}
         </div>
       </div>
+
+      {/* Speak-to-type */}
+      <button
+        className={`${styles.micBtn} ${listening ? styles.micBtnActive : ""} ${!isPaid ? styles.micBtnLocked : ""}`}
+        onClick={handleMic}
+        type="button"
+        title={isPaid ? (listening ? "Stop recording" : "Speak instead of type") : "Speak · Premium"}
+      >
+        <span className={styles.micIcon}>{listening ? "⏹" : "🎙"}</span>
+        <span className={styles.micLabel}>
+          {listening ? "Stop recording" : isPaid ? "Speak instead of type" : "Speak · Premium"}
+        </span>
+      </button>
 
       {/* Readiness meter */}
       <div className={styles.meter}>
