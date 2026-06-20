@@ -87,7 +87,20 @@ export default function HomePage() {
         router.replace("/login");
         return;
       }
-      setUserEmail(data.user.email ?? null);
+      const email = data.user.email ?? null;
+      setUserEmail(email);
+
+      // Fetch today's server-side count
+      if (email) {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const { count } = await supabase
+          .from("storysignal_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("email", email)
+          .gte("created_at", todayStart.toISOString());
+        setEntriesToday(count ?? 0);
+      }
     });
 
     if (typeof window === "undefined") return;
@@ -176,10 +189,24 @@ export default function HomePage() {
     setError(null);
 
     try {
-      const res = await analyzeText(text, mood, category);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      const res = await analyzeText(text, mood, category, accessToken);
       setResult(res);
       const vr = toVoiceReading(res);
       setVoiceReading(vr);
+
+      // Refresh server-side count after a successful reading
+      if (userEmail) {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const { count } = await supabase
+          .from("storysignal_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("email", userEmail)
+          .gte("created_at", todayStart.toISOString());
+        setEntriesToday(count ?? 0);
+      }
 
       // Save to Supabase — capture the returned id for the keep-words toggle
       if (userEmail) {

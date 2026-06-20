@@ -24,11 +24,15 @@ export type AnalysisResult = {
 export async function analyzeText(
   text: string,
   mood: string,
-  category: string
+  category: string,
+  accessToken?: string
 ): Promise<AnalysisResult> {
   const res = await fetch("/api/analyze", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
     body: JSON.stringify({ text, mood, category }),
   });
 

@@ -1,6 +1,10 @@
 // app/api/analyze/route.ts
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
+
+const FREE_LIMIT    = 5;
+const PREMIUM_LIMIT = 25;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -23,11 +27,59 @@ export async function POST(req: Request) {
   try {
     const { text, mood, category } = await req.json();
 
-    if (!text || text.trim().length < 20) {
+    // --- 40-word minimum (server-side) ---
+    const wordCount = text?.trim().split(/\s+/).filter(Boolean).length ?? 0;
+    if (wordCount < 40) {
       return NextResponse.json(
-        { error: "Please enter at least a few sentences." },
+        { error: `Your entry needs a little more — at least 40 words to get a meaningful reading. You have ${wordCount} so far.` },
         { status: 400 }
       );
+    }
+
+    // --- Daily cap (server-side) ---
+    const authHeader = req.headers.get("Authorization");
+    const accessToken = authHeader?.replace("Bearer ", "") ?? "";
+
+    if (accessToken) {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { global: { headers: { Authorization: `Bearer ${accessToken}` } } }
+      );
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user?.email) {
+        // Check tier
+        const { data: userRow } = await supabase
+          .from("storysignal_users")
+          .select("is_paid")
+          .eq("email", user.email)
+          .maybeSingle();
+
+        const isPaid = userRow?.is_paid === true;
+        const limit  = isPaid ? PREMIUM_LIMIT : FREE_LIMIT;
+
+        // Count today's entries
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const { count } = await supabase
+          .from("storysignal_entries")
+          .select("id", { count: "exact", head: true })
+          .eq("email", user.email)
+          .gte("created_at", todayStart.toISOString());
+
+        const usedToday = count ?? 0;
+
+        if (usedToday >= limit) {
+          const tierLabel = isPaid ? "Premium" : "free";
+          return NextResponse.json(
+            { error: `You've reached your ${tierLabel} limit of ${limit} readings today. Come back tomorrow — your voice will be here.` },
+            { status: 429 }
+          );
+        }
+      }
     }
 
     const userText = text.trim().slice(0, 6000);
