@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 export async function POST(req: Request) {
+  console.log("STRIPE_SECRET_KEY prefix:", process.env.STRIPE_SECRET_KEY?.slice(0, 7) ?? "MISSING");
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
   const { plan, email } = await req.json() as { plan: "monthly" | "annual"; email?: string };
 
