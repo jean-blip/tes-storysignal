@@ -179,6 +179,14 @@ export default function HomePage() {
       const vr = toVoiceReading(res);
       setVoiceReading(vr);
 
+      // Save to Supabase
+      if (userEmail) {
+        await supabase.from("storysignal_entries").insert({
+          email: userEmail,
+          result: res,
+        });
+      }
+
       const item: JourneyItem = {
         id: Date.now(),
         timestamp: new Date().toISOString(),
