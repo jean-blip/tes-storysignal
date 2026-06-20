@@ -163,6 +163,54 @@
   line-height: 1.5;
 }
 
+/* Timeline (Premium) */
+.timelineSection {
+  margin-bottom: 20px;
+}
+
+.timelineEyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: var(--sans);
+  margin-bottom: 10px;
+}
+
+.timelineScroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(224,160,42,0.2) transparent;
+}
+
+.timelineWrap {
+  min-width: 100%;
+}
+
+.whatWeNotice {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: rgba(224,160,42,0.06);
+  border: 1px solid rgba(224,160,42,0.14);
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--soft);
+}
+
+.noticeLabel {
+  color: var(--gold-soft);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.noticeText {
+  font-style: italic;
+}
+
 /* Footnote */
 .footnote {
   font-size: 0.74rem;

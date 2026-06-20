@@ -11,6 +11,7 @@ import InputCard from "./components/InputCard";
 import AppHeader from "./components/AppHeader";
 import JourneySection, { type JourneyItem } from "./components/JourneySection";
 import { toVoiceReading } from "../lib/toVoiceReading";
+import { useTier } from "../lib/useTier";
 
 // --------------------------------------------
 // TYPES
@@ -45,6 +46,8 @@ const DAILY_LIMIT = 5;
 
 export default function HomePage() {
   const router = useRouter();
+  const { tier } = useTier();
+  const isPaid = tier === "premium";
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
@@ -82,7 +85,7 @@ export default function HomePage() {
       return;
     }
 
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.replace("/login");
         return;
@@ -296,7 +299,7 @@ export default function HomePage() {
             category={category}
             loading={loading}
             error={error}
-            isPaid={false}
+            isPaid={isPaid}
             readingsLeftToday={Math.max(0, DAILY_LIMIT - entriesToday)}
             onTextChange={(t) => { setText(t); setError(null); }}
             onMoodChange={setMood}
