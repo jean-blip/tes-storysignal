@@ -34,19 +34,24 @@ export default function PlanPage() {
   async function handleUpgrade() {
     setChecking(true);
     setErr("");
-    const { data: { user } } = await supabase.auth.getUser();
-    const email = user?.email ?? "";
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const email = user?.email ?? "";
 
-    const res  = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: annual ? "annual" : "monthly", email }),
-    });
-    const json = await res.json();
-    if (json.url) {
-      window.location.href = json.url;
-    } else {
-      setErr("Something went wrong — please try again.");
+      const res  = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: annual ? "annual" : "monthly", email }),
+      });
+      const json = await res.json();
+      if (json.url) {
+        window.location.href = json.url;
+      } else {
+        setErr(json.error ?? "Something went wrong — please try again.");
+        setChecking(false);
+      }
+    } catch (e) {
+      setErr("Could not connect to payment service — please try again.");
       setChecking(false);
     }
   }
