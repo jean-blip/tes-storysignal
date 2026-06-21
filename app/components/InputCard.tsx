@@ -131,15 +131,16 @@ export default function InputCard({
   const router = useRouter();
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const [listening, setListening] = useState(false);
+  const [micError, setMicError] = useState("");
   const listeningRef = useRef(false);
-  const baseTextRef = useRef(""); // text that existed before recording started
+  const baseTextRef = useRef("");
 
   function startRecognition(SR: SpeechRecognitionConstructor) {
     const rec = new SR();
     rec.lang = "en-US";
     rec.interimResults = true;
     rec.maxAlternatives = 1;
-    rec.continuous = true;
+    rec.continuous = false; // single session, restart on end
 
     rec.onresult = (e: SpeechRecognitionEvent) => {
       const transcript = Array.from(e.results)
@@ -148,11 +149,19 @@ export default function InputCard({
       const combined = baseTextRef.current
         ? baseTextRef.current + " " + transcript
         : transcript;
-      onTextChange(combined.trimStart());
+      baseTextRef.current = combined.trimStart();
+      onTextChange(baseTextRef.current);
       onVoiceChange?.(true);
     };
 
-    rec.onerror = () => { /* keep going */ };
+    rec.onerror = (e: Event) => {
+      const code = (e as unknown as { error: string }).error;
+      if (code === "not-allowed") setMicError("Microphone access denied — check browser settings.");
+      else if (code === "network") setMicError("Network error — voice needs an internet connection.");
+      else setMicError(`Voice error: ${code}`);
+      listeningRef.current = false;
+      setListening(false);
+    };
 
     rec.onend = () => {
       if (listeningRef.current) {
@@ -173,6 +182,8 @@ export default function InputCard({
       alert("Speech recognition isn't supported in this browser. Try Chrome or Safari.");
       return;
     }
+
+    setMicError("");
 
     if (listeningRef.current) {
       listeningRef.current = false;
@@ -237,9 +248,10 @@ export default function InputCard({
           {listening ? "Stop recording" : isPaid ? "Speak instead of type" : "Speak · Premium"}
         </span>
       </button>
-      {isPaid && !listening && (
+      {isPaid && !listening && !micError && (
         <p className={styles.micHint}>Works best in Chrome. Safari and Firefox may not support voice input.</p>
       )}
+      {micError && <p className={styles.micHint} style={{color:"var(--error, #c0392b)"}}>{micError}</p>}
 
       {/* Readiness meter */}
       <div className={styles.meter}>
