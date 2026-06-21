@@ -234,7 +234,7 @@ export default function InputCard({
           {transcribing ? "Transcribing…" : listening ? "Stop recording" : isPaid ? "Speak instead of type" : "Speak · Premium"}
         </span>
       </button>
-      {micError && <p className={styles.micHint} style={{color:"var(--error, #c0392b)"}}>{micError}</p>}
+      {micError && <p className={styles.micHint} style={{color:"var(--error, #c0392b)"}}>{micError} <a href="/help" style={{color:"inherit",textDecoration:"underline"}}>Troubleshooting help →</a></p>}
 
       {/* Readiness meter */}
       <div className={styles.meter}>
