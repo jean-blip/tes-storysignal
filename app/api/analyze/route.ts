@@ -50,8 +50,12 @@ export async function POST(req: Request) {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user?.email) {
-        // Check tier
-        const { data: userRow } = await supabase
+        // Check tier using service role to bypass RLS
+        const supabaseAdmin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const { data: userRow } = await supabaseAdmin
           .from("storysignal_users")
           .select("is_paid")
           .eq("email", user.email)
