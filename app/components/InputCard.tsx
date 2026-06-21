@@ -154,11 +154,8 @@ export default function InputCard({
       onVoiceChange?.(true);
     };
 
-    rec.onerror = (e: Event) => {
-      const code = (e as unknown as { error: string }).error;
-      if (code === "not-allowed") setMicError("Microphone access denied — check browser settings.");
-      else if (code === "network") setMicError("Network error — voice needs an internet connection.");
-      else setMicError(`Voice error: ${code}`);
+    rec.onerror = () => {
+      setMicError("Voice input failed — make sure microphone access is allowed in Chrome.");
       listeningRef.current = false;
       setListening(false);
     };
