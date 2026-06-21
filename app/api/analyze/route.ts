@@ -63,7 +63,6 @@ export async function POST(req: Request) {
 
         const isPaid = userRow?.is_paid === true;
         const limit  = isPaid ? PREMIUM_LIMIT : FREE_LIMIT;
-        console.log("[analyze] email:", user.email, "is_paid:", userRow?.is_paid, "isPaid:", isPaid, "limit:", limit);
 
         // Count today's entries
         const todayStart = new Date();
