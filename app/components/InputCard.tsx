@@ -238,6 +238,9 @@ export default function InputCard({
           {listening ? "Stop recording" : isPaid ? "Speak instead of type" : "Speak · Premium"}
         </span>
       </button>
+      {isPaid && !listening && (
+        <p className={styles.micHint}>Works best in Chrome. Safari and Firefox may not support voice input.</p>
+      )}
 
       {/* Readiness meter */}
       <div className={styles.meter}>
