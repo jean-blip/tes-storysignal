@@ -131,6 +131,39 @@ export default function InputCard({
   const router = useRouter();
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const [listening, setListening] = useState(false);
+  const listeningRef = useRef(false);
+  const transcriptRef = useRef("");
+
+  function startRecognition(SR: SpeechRecognitionConstructor) {
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.continuous = true;
+
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const transcript = Array.from(e.results)
+        .map((r) => r[0].transcript)
+        .join(" ");
+      transcriptRef.current = transcript;
+      onTextChange((transcriptRef.current).trimStart());
+      onVoiceChange?.(true);
+    };
+
+    rec.onerror = () => {
+      if (!listeningRef.current) return;
+    };
+
+    rec.onend = () => {
+      // Restart automatically if user hasn't stopped
+      if (listeningRef.current) {
+        try { startRecognition(SR); } catch { setListening(false); listeningRef.current = false; }
+      }
+    };
+
+    recognitionRef.current = rec;
+    rec.start();
+  }
 
   function handleMic() {
     if (!isPaid) { router.push("/plan"); return; }
@@ -142,32 +175,17 @@ export default function InputCard({
       return;
     }
 
-    if (listening) {
+    if (listeningRef.current) {
+      listeningRef.current = false;
       recognitionRef.current?.stop();
       setListening(false);
       return;
     }
 
-    const rec = new SR();
-    rec.lang = "en-US";
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.continuous = true;
-
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = Array.from(e.results)
-        .map((r) => r[0].transcript)
-        .join(" ");
-      onTextChange((text + " " + transcript).trimStart());
-      onVoiceChange?.(true);
-    };
-
-    rec.onerror = () => { setListening(false); };
-    rec.onend   = () => { setListening(false); };
-
-    recognitionRef.current = rec;
-    rec.start();
+    transcriptRef.current = text;
+    listeningRef.current = true;
     setListening(true);
+    startRecognition(SR);
   }
 
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
