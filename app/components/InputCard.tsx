@@ -4,33 +4,6 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./InputCard.module.css";
 
-// Web Speech API types (not in lib.dom.d.ts for all environments)
-interface SpeechRecognitionEvent extends Event {
-  results: SpeechRecognitionResultList;
-}
-interface SpeechRecognitionErrorEvent {
-  error: string;
-}
-interface SpeechRecognitionInstance {
-  lang: string;
-  interimResults: boolean;
-  maxAlternatives: number;
-  continuous: boolean;
-  start(): void;
-  stop(): void;
-  onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
-}
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognitionInstance;
-}
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  }
-}
 
 // -------------------------------------------------------
 // Constants
@@ -132,70 +105,64 @@ export default function InputCard({
   onVoiceChange,
 }: Props) {
   const router = useRouter();
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const [listening, setListening] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
   const [micError, setMicError] = useState("");
-  const listeningRef = useRef(false);
-  const baseTextRef = useRef("");
 
-  function startRecognition(SR: SpeechRecognitionConstructor) {
-    const rec = new SR();
-    rec.lang = "en-US";
-    rec.interimResults = true;
-    rec.maxAlternatives = 1;
-    rec.continuous = false; // single session, restart on end
-
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = Array.from(e.results)
-        .map((r) => r[0].transcript)
-        .join(" ");
-      const combined = baseTextRef.current
-        ? baseTextRef.current + " " + transcript
-        : transcript;
-      baseTextRef.current = combined.trimStart();
-      onTextChange(baseTextRef.current);
-      onVoiceChange?.(true);
-    };
-
-    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
-      setMicError(`Voice error: ${e.error}`);
-      listeningRef.current = false;
-      setListening(false);
-    };
-
-    rec.onend = () => {
-      if (listeningRef.current) {
-        try { startRecognition(SR); } catch { setListening(false); listeningRef.current = false; }
-      }
-    };
-
-    recognitionRef.current = rec;
-    rec.start();
-  }
-
-  function handleMic() {
+  async function handleMic() {
     if (!isPaid) { router.push("/plan"); return; }
 
-    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-
-    if (!SR) {
-      alert("Speech recognition isn't supported in this browser. Try Chrome or Safari.");
+    // Stop recording
+    if (listening) {
+      mediaRecorderRef.current?.stop();
+      setListening(false);
       return;
     }
 
     setMicError("");
+    chunksRef.current = [];
 
-    if (listeningRef.current) {
-      listeningRef.current = false;
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setTranscribing(true);
+        try {
+          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          const form = new FormData();
+          form.append("file", blob, "recording.webm");
+
+          const res  = await fetch("/api/transcribe", { method: "POST", body: form });
+          const json = await res.json();
+
+          if (json.text) {
+            const combined = text ? text + " " + json.text : json.text;
+            onTextChange(combined.trimStart());
+            onVoiceChange?.(true);
+          } else {
+            setMicError(json.error ?? "Transcription failed — please try again.");
+          }
+        } catch {
+          setMicError("Could not transcribe audio — please try again.");
+        } finally {
+          setTranscribing(false);
+        }
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setListening(true);
+    } catch {
+      setMicError("Microphone access denied — please allow mic access in your browser.");
     }
-
-    baseTextRef.current = text;
-    listeningRef.current = true;
-    setListening(true);
-    startRecognition(SR);
   }
 
   const words = text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -241,16 +208,14 @@ export default function InputCard({
         className={`${styles.micBtn} ${listening ? styles.micBtnActive : ""} ${!isPaid ? styles.micBtnLocked : ""}`}
         onClick={handleMic}
         type="button"
+        disabled={transcribing}
         title={isPaid ? (listening ? "Stop recording" : "Speak instead of type") : "Speak · Premium"}
       >
-        <span className={styles.micIcon}>{listening ? "⏹" : "🎙"}</span>
+        <span className={styles.micIcon}>{transcribing ? "⏳" : listening ? "⏹" : "🎙"}</span>
         <span className={styles.micLabel}>
-          {listening ? "Stop recording" : isPaid ? "Speak instead of type" : "Speak · Premium"}
+          {transcribing ? "Transcribing…" : listening ? "Stop recording" : isPaid ? "Speak instead of type" : "Speak · Premium"}
         </span>
       </button>
-      {isPaid && !listening && !micError && (
-        <p className={styles.micHint}>Works best in Chrome. Safari and Firefox may not support voice input.</p>
-      )}
       {micError && <p className={styles.micHint} style={{color:"var(--error, #c0392b)"}}>{micError}</p>}
 
       {/* Readiness meter */}
