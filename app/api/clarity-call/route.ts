@@ -20,8 +20,8 @@ export async function POST(req: Request) {
   const token = authHeader.replace("Bearer ", "");
 
   const supabaseUser = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://thrglylxdrlkwnsssifm.supabase.co",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "sb_publishable_ys2TzIFlDZxQTUATw7h0oQ_JzFtH2Sd",
     { global: { headers: { Authorization: `Bearer ${token}` } } }
   );
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   }
 
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://thrglylxdrlkwnsssifm.supabase.co",
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 

@@ -14,8 +14,8 @@ export async function POST(request: Request) {
 
     // Use a simple Supabase client (no cookies)
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://thrglylxdrlkwnsssifm.supabase.co",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "sb_publishable_ys2TzIFlDZxQTUATw7h0oQ_JzFtH2Sd"
     );
 
     // Attempt login
