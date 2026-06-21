@@ -155,6 +155,11 @@ export default function InputCard({
             setTranscribing(false);
             return;
           }
+          // DEBUG: play back the recording so we can verify mic is capturing voice
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audio.play();
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
           const form = new FormData();
           form.append("file", blob, `recording.${ext}`);
 
