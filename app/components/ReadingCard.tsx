@@ -341,9 +341,9 @@ export default function ReadingCard({ reading, entryId, originalText, onUsePromp
               </label>
               {keepWords && originalText && (
                 <div className={styles.keptBlock}>
-                  <p className={styles.keptText}>{originalText}</p>
+                  <span className={styles.keptSaved}>Your words are saved with this reading.</span>
                   <button className={styles.copyBtn} onClick={handleCopy}>
-                    {copied ? "Copied" : "Copy"}
+                    {copied ? "Copied" : "Copy text"}
                   </button>
                 </div>
               )}
