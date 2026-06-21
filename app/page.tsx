@@ -178,8 +178,8 @@ export default function HomePage() {
         localStorage.setItem("ss-usage", JSON.stringify(usage));
       }
 
-      // Enforce limit
-      if (usage.count >= DAILY_LIMIT) {
+      // Enforce limit for free users only — server enforces the real cap
+      if (!isPaid && usage.count >= DAILY_LIMIT) {
         setError(
           `You've reached your daily limit of ${DAILY_LIMIT} readings. Please come back tomorrow.`
         );
