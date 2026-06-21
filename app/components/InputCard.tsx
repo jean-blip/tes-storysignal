@@ -132,7 +132,7 @@ export default function InputCard({
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const [listening, setListening] = useState(false);
   const listeningRef = useRef(false);
-  const transcriptRef = useRef("");
+  const baseTextRef = useRef(""); // text that existed before recording started
 
   function startRecognition(SR: SpeechRecognitionConstructor) {
     const rec = new SR();
@@ -145,17 +145,16 @@ export default function InputCard({
       const transcript = Array.from(e.results)
         .map((r) => r[0].transcript)
         .join(" ");
-      transcriptRef.current = transcript;
-      onTextChange((transcriptRef.current).trimStart());
+      const combined = baseTextRef.current
+        ? baseTextRef.current + " " + transcript
+        : transcript;
+      onTextChange(combined.trimStart());
       onVoiceChange?.(true);
     };
 
-    rec.onerror = () => {
-      if (!listeningRef.current) return;
-    };
+    rec.onerror = () => { /* keep going */ };
 
     rec.onend = () => {
-      // Restart automatically if user hasn't stopped
       if (listeningRef.current) {
         try { startRecognition(SR); } catch { setListening(false); listeningRef.current = false; }
       }
@@ -182,7 +181,7 @@ export default function InputCard({
       return;
     }
 
-    transcriptRef.current = text;
+    baseTextRef.current = text;
     listeningRef.current = true;
     setListening(true);
     startRecognition(SR);
