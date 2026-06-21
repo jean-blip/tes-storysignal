@@ -7,6 +7,134 @@ import { supabase } from "../../lib/supabaseClient";
 import { useTier } from "../../lib/useTier";
 import styles from "./Plan.module.css";
 
+// -------------------------------------------------------
+// Clarity Call CTA
+// -------------------------------------------------------
+function ClarityCall() {
+  const [path, setPath]         = useState<"self" | "coach" | null>(null);
+  const [name, setName]         = useState("");
+  const [email, setEmail]       = useState("");
+  const [note, setNote]         = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [busy, setBusy]         = useState(false);
+  const [done, setDone]         = useState(false);
+  const [err, setErr]           = useState("");
+
+  async function handlePath(p: "self" | "coach") {
+    setPath(p);
+    setErr("");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) setEmail(user.email);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !email.trim()) { setErr("Please enter your name and email."); return; }
+    setBusy(true);
+    setErr("");
+    const { data: { session } } = await supabase.auth.getSession();
+    const res  = await fetch("/api/clarity-call", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token ?? ""}`,
+      },
+      body: JSON.stringify({ name, email, note, path, honeypot }),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      setDone(true);
+    } else {
+      setErr(json.error ?? "Something went wrong — please try again.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className={styles.clarityWrap}>
+      <div className={styles.clarityInner}>
+        <p className={styles.clarityEyebrow}>Free · No obligation</p>
+        <h2 className={styles.clarityTitle}>Not sure where to start?<br />Book a free clarity call.</h2>
+        <p className={styles.claritySub}>
+          A short conversation to see where you are, what StorySignal can offer you,
+          and whether it fits what you're looking for.
+        </p>
+
+        {!done ? (
+          <>
+            <div className={styles.pathRow}>
+              <button
+                className={`${styles.pathBtn} ${path === "self" ? styles.pathBtnActive : ""}`}
+                onClick={() => handlePath("self")}
+                type="button"
+              >
+                For myself
+              </button>
+              <button
+                className={`${styles.pathBtn} ${path === "coach" ? styles.pathBtnActive : ""}`}
+                onClick={() => handlePath("coach")}
+                type="button"
+              >
+                For coaches &amp; practitioners
+              </button>
+            </div>
+
+            {path && (
+              <form className={styles.clarityForm} onSubmit={handleSubmit}>
+                {/* Honeypot — hidden from real users */}
+                <input
+                  type="text"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  style={{ position: "absolute", left: "-9999px" }}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  autoComplete="off"
+                />
+                <input
+                  className={styles.clarityInput}
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+                <input
+                  className={styles.clarityInput}
+                  type="email"
+                  placeholder="Your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <input
+                  className={styles.clarityInput}
+                  type="text"
+                  placeholder="Anything you'd like to focus on — optional"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+                {err && <p className={styles.clarityErr}>{err}</p>}
+                <button className={styles.claritySubmit} type="submit" disabled={busy}>
+                  {busy ? "Sending…" : "Request my call"}
+                </button>
+              </form>
+            )}
+          </>
+        ) : (
+          <div className={styles.clarityConfirm}>
+            <p className={styles.clarityConfirmTitle}>Thank you — we've got it.</p>
+            <p className={styles.claritySub}>
+              We'll be in touch from <strong>call@storysignal.app</strong> with a link to choose
+              a time for your {path === "coach" ? "practitioner" : "personal"} call.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const FREE_FEATURES = [
   { icon: "✓", label: "Up to 5 readings per day",            muted: false },
   { icon: "✓", label: "Full voice-state reading each time",  muted: false },
@@ -192,6 +320,9 @@ export default function PlanPage() {
         {err && <p className={styles.errMsg}>{err}</p>}
 
         <p className={styles.finePrint}>Cancel anytime. Your readings remain yours.</p>
+
+        {/* Clarity Call CTA */}
+        <ClarityCall />
 
         {/* About strip */}
         <div className={styles.about}>

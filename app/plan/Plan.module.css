@@ -309,3 +309,139 @@
   margin: 26px 0 0;
   font-family: var(--sans);
 }
+
+/* Clarity Call */
+.clarityWrap {
+  margin-top: 64px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  padding-top: 56px;
+}
+
+.clarityInner {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.clarityEyebrow {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 14px;
+}
+
+.clarityTitle {
+  font-family: var(--serif);
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 400;
+  color: var(--text);
+  margin: 0 0 14px;
+  line-height: 1.25;
+}
+
+.claritySub {
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0 0 28px;
+}
+
+.pathRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.pathBtn {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pathBtn:hover {
+  border-color: var(--gold);
+  color: var(--text);
+}
+
+.pathBtnActive {
+  border-color: var(--gold);
+  background: rgba(212,175,55,0.1);
+  color: var(--gold);
+}
+
+.clarityForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.clarityInput {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.clarityInput:focus {
+  border-color: var(--gold);
+}
+
+.clarityInput::placeholder {
+  color: var(--muted);
+}
+
+.clarityErr {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: #c0392b;
+  margin: 0;
+}
+
+.claritySubmit {
+  margin-top: 4px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: none;
+  background: var(--gold);
+  color: #1a1408;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: opacity 0.15s;
+}
+
+.claritySubmit:disabled { opacity: 0.6; cursor: default; }
+.claritySubmit:hover:not(:disabled) { opacity: 0.88; }
+
+.clarityConfirm {
+  padding: 28px;
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: 16px;
+  background: rgba(212,175,55,0.06);
+}
+
+.clarityConfirmTitle {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--gold);
+  margin: 0 0 10px;
+}
