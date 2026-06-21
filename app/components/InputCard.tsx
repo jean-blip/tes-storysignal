@@ -158,7 +158,7 @@ export default function InputCard({
       };
 
       mediaRecorderRef.current = recorder;
-      recorder.start();
+      recorder.start(250); // collect chunks every 250ms
       setListening(true);
     } catch {
       setMicError("Microphone access denied — please allow mic access in your browser.");
