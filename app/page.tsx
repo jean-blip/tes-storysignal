@@ -322,7 +322,7 @@ export default function HomePage() {
 
         <JourneySection
           items={journey}
-          isPaid={false}
+          isPaid={isPaid}
           hydrated={hydrated}
           onSelect={(r) => setVoiceReading(r)}
         />
