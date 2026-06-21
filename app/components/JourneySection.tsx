@@ -61,8 +61,9 @@ function Timeline({ entries }: { entries: SupabaseEntry[] }) {
     <div className={styles.timelineWrap}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        width="100%"
-        style={{ minWidth: entries.length * GAP, overflow: "visible" }}
+        width={width}
+        height={height}
+        style={{ overflow: "visible" }}
         aria-hidden="true"
       >
         {/* Connecting line */}
