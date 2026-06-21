@@ -8,6 +8,9 @@ import styles from "./InputCard.module.css";
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
 }
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
 interface SpeechRecognitionInstance {
   lang: string;
   interimResults: boolean;
@@ -16,7 +19,7 @@ interface SpeechRecognitionInstance {
   start(): void;
   stop(): void;
   onresult: ((e: SpeechRecognitionEvent) => void) | null;
-  onerror: (() => void) | null;
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
 }
 interface SpeechRecognitionConstructor {
@@ -154,8 +157,8 @@ export default function InputCard({
       onVoiceChange?.(true);
     };
 
-    rec.onerror = () => {
-      setMicError("Voice input failed — make sure microphone access is allowed in Chrome.");
+    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
+      setMicError(`Voice error: ${e.error}`);
       listeningRef.current = false;
       setListening(false);
     };
