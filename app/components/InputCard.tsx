@@ -144,6 +144,11 @@ export default function InputCard({
           const actualType = recorder.mimeType || "audio/webm";
           const ext = actualType.includes("mp4") ? "mp4" : actualType.includes("ogg") ? "ogg" : "webm";
           const blob = new Blob(chunksRef.current, { type: actualType });
+          if (blob.size < 1000) {
+            setMicError(`No audio captured (${blob.size} bytes) — try a different microphone or browser.`);
+            setTranscribing(false);
+            return;
+          }
           const form = new FormData();
           form.append("file", blob, `recording.${ext}`);
 
