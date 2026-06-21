@@ -126,7 +126,12 @@ export default function InputCard({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : "";
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
 
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -136,9 +141,11 @@ export default function InputCard({
         stream.getTracks().forEach((t) => t.stop());
         setTranscribing(true);
         try {
-          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          const actualType = recorder.mimeType || "audio/webm";
+          const ext = actualType.includes("mp4") ? "mp4" : actualType.includes("ogg") ? "ogg" : "webm";
+          const blob = new Blob(chunksRef.current, { type: actualType });
           const form = new FormData();
-          form.append("file", blob, "recording.webm");
+          form.append("file", blob, `recording.${ext}`);
 
           const res  = await fetch("/api/transcribe", { method: "POST", body: form });
           const json = await res.json();
