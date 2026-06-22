@@ -24,6 +24,7 @@ function normalizeDistribution(numbers: number[]): number[] {
 }
 
 export async function POST(req: Request) {
+  console.log("[analyze] BUILD_CHECK=v2 KEY_START=" + ("sb_publishable_ys2TzIFlDZxQTUATw7h0oQ_JzFtH2Sd").slice(0,8));
   try {
     const { text, mood, category } = await req.json();
 
